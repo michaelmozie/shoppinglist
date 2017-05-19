@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<style>
+.Untick {
+    width: 80px;
+	height: 65px;
+    position: absolute;
+    left: 130px;
+    cursor: pointer;
+}
+
+.Tick {
+    width: 50px;
+	height: 50px;
+    display: none;
+    position: absolute;
+    left: 150px;
+    cursor: pointer;
+}
+
+.Delete {
+	width: 45px;
+    height: 55px;
+    float: right;
+    cursor: pointer;
+}
+
+.fordelete { text-decoration:line-through; }
+
+</style>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+
+<script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+<script type="text/javascript" src="http://dev.jtsage.com/cdn/spinbox/latest/jqm-spinbox.min.js"></script>
+</head>
+<body>
+
+<script>
+var chosenItems = {};
+
+var itemsList = ['Apples', 'Grapes','Blueberries','Bananas','Tomatoes','Strawberries','Carrots', 'Cabbages','Avacado','Onions','Potatoes','Melons','Asparagus','Green Beans','Broccoli'];
+
+$( document ).ready(function() {
+    // you can only save strings to local storage
+	// so all js objects have to be saved in the form JSON.stringify()
+	// and retrieved in the format JSON.parse(obj)
+    var q = localStorage.getItem("previousList");
+	if (q!=null) chosenItems = JSON.parse(q);
+
+	displayList();
+
+});
+
+
+function displayList(){
+
+	itemsList.sort();
+
+	$('#myUL').empty();
+
+
+	for(i=0; i< itemsList.length ; i++){
+
+		//$('myUL').remove();
+		item = itemsList[i];
+
+		$('#myUL').append('<li><a onclick="gotoQuantity(this)">'+item+'</a></li>');
+
+	}
+	$( "#myUL" ).listview( "refresh" );
+
+
+}
+
+//Show Untick
+$(document).on('click', '.Untick', function() {
+    $(this).closest(".check").find(".Tick").show();
+
+	$(this).children('.vegs').removeClass('fordelete');
+});
+
+//Hide Tick
+$(document).on('click', '.Tick', function() {
+    $(this).hide();
+	$(this).children('.vegs').addClass('fordelete');
+
+});
+
+
+$(document).on('click', '.check', function() {
+
+	if(	$(this).children('.vegs').hasClass('fordelete')){
+
+			$(this).children('.vegs').removeClass('fordelete');
+	}else{
+
+		$(this).children('.vegs').addClass('fordelete');
+
+	}
+});
+
+//Delete Item
+
+$(document).on('click', '.Delete' , function(e){
+
+	e.preventDefault();
+
+	var id = $(this).attr('data-id');
+
+	//alert('test');
+	delete chosenItems[id];
+
+	localStorage.setItem("previousList",JSON.stringify(chosenItems));
+
+    $(this).closest('li').remove();
+
+
+
+
+
+	});
+
+function gotoQuantity(obj)
+{
+	$.mobile.changePage("#quantity");
+	vegetablesChosen = $(obj).text();
+	$("#foodItem").text(vegetablesChosen);
+
+
+}
+
+function showChosenItems()
+{
+	if ($("#spin").val()!="0")    saveChoice();
+
+	//remove existing items from shopping list
+	 $("#shoppingList").empty();
+
+	 var tmp = Array();
+
+	 for (var key in chosenItems) {
+
+		if(key != ''){
+			tmp.push(key) ;
+		}
+	 }
+
+	 tmp.sort();
+
+
+ //console.log(tmp.lenght);
+
+
+
+	 //iterate through the dictionary chosenItems
+	 for (i=0; i < tmp.length; i++) {
+			key = tmp[i];
+
+			foodItemList = key + ":" + chosenItems[key];
+
+	   $('<li>').append('<li class="ui-li-static ui-body-inherit ui-first-child ui-last-child">' +
+           '<div class="check">' +
+           '<img class="Untick" src="Images/Untick.png" alt="Tick off">' +
+           '<img class="Tick" src="Images/Tick.png">' +
+           '<div class="vegs">' + foodItemList + '</div>' +
+           '<a href="#" class="Delete" data-id="'+  key  +'">' +
+           '<img class="Delete" src="Images/Delete.png" alt="Delete Item">' +
+           '</a>' +
+           '</div>' +
+           '</li>'
+       ).appendTo('#shoppingList');
+
+  	 }
+
+
+
+
+
+	//you have to navigate to the page after you have populated
+	$.mobile.changePage("#finalShoppingList");
+	 $("#shoppingList").listview('refresh');
+
+
+}
+
+function backToList()
+{
+	saveChoice();
+
+	$.mobile.changePage("#pageone");
+	$("#spin").val(0);
+
+
+}
+
+function saveChoice()
+{
+	vegetableChosen = $("#foodItem").text();
+	quantityChosen = $("#spin").val();
+	chosenItems[vegetableChosen] = quantityChosen;
+	localStorage.setItem("previousList",JSON.stringify(chosenItems));
+
+	 $('.ui-input-clear').trigger("click");
+}
+
+function newElement()
+{
+	var inputValue = document.getElementById("myFilter").value;
+
+	inputValue = toTitleCase (inputValue);
+
+	//var newthing = '<li><a onclick="gotoQuantity(this)">' + inputValue + '</a></li>';
+	//$('#myUL').append(newthing);
+
+	itemsList.push( inputValue );
+	//itemsList = itemsList.sort();
+	itemsList.sort();
+
+	//console.log(itemsList);
+
+	displayList();
+
+
+}
+
+function toTitleCase(str)
+{
+    return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+}
+
+
+
+</script>
+
+<div data-role="page" id="pageone">
+  <div data-role="main" class="ui-content">
+    <h2>Shopping List > Fruits & Vegatables</h2>
+
+		<div data-role="navbar">
+      <ul>
+        <li><a onClick="backToList()" data-icon="home" data-theme="a">Search</a></li>
+		<li><a onClick="showChosenItems()" data-icon="bullets">Shopping List</a></li>
+       <!-- <li><a onClick="showChosenItems()" data-icon="search">Search</a></li> -->
+
+      </ul>
+    </div>
+
+
+    <form class="ui-filterable">
+      <input id="myFilter" data-type="search">
+	  <input type="button" id="AddBtn" value="Add Item" onclick="newElement()"/>
+  </form>
+
+
+    <ul id ="myUL" data-role="listview" data-filter="true" data-input="#myFilter" data-autodividers="true" data-inset="true">
+
+
+    </ul>
+  </div>
+</div>
+
+<div data-role="page" id="quantity">
+<div data-role="main" class="ui-content">
+<h2>Shopping List</h2>
+	<div data-role="navbar">
+      <ul>
+
+	    <li><a onClick="backToList()" data-icon="home" data-theme="a">Home</a></li>
+		<li><a onClick="showChosenItems()" data-icon="bullets">Shopping List</a></li>
+       <!-- <li><a onClick="showChosenItems()" data-icon="search">Search</a></li> -->
+      </ul>
+    </div>
+
+
+
+
+  	  <div id="foodItem"></div>
+     <div class="ui-field-contain">
+       <label for="spin">Quantity</label>
+       <input type="text" data-role="spinbox" name="spin" id="spin" value="1" min="1" max="10" />
+      </div>
+      <button onclick="backToList()">Add to basket and continue shopping</button>
+      <button onclick="showChosenItems()">Add to basket</button>
+ </div>
+
+</div>
+
+<div data-role="page" id="finalShoppingList">
+  <div data-role="main" class="ui-content">
+<h2>Shopping Items</h2>
+	<div data-role="navbar">
+      <ul>
+        <li><a onClick="backToList()" data-icon="home" data-theme="a">Home</a></li>
+		<li><a onClick="showChosenItems()" data-icon="bullets">Shopping List</a></li>
+              <!-- <li><a onClick="showChosenItems()" data-icon="search">Search</a></li> -->
+
+      </ul>
+    </div>
+
+  <div id="allVegetablesChosen">
+  <ul data-role="listview" data-filter="true" data-input="#myFilter" data-autodividers="true" data-inset="true" id="shoppingList">
+  </ul>
+  <button onclick="$.mobile.changePage('#pageone');">Add More Items</button>
+  </div>
+  </div>
+
+  </div>
+
+</body>
+</html>
